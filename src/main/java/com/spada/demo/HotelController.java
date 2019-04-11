@@ -50,7 +50,7 @@ public class HotelController {
 		if (hotel.isPresent()) {
 			return hotel.get();
 		}
-		throw new ResourcenotFoundException("ERROREsss: " + id + " Non trovato");
+		throw new ResourcenotFoundException("ERRORE: " + id + " Non trovato");
 	}
 
 	@GetMapping("/price/{max}")
