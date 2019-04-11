@@ -1,0 +1,64 @@
+# Use root/example as user/password credentials
+version: '3.1'
+
+services:
+
+  mongo:
+    image: mongo
+    restart: always
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: spadam
+    #   MONGO_INITDB_ROOT_PASSWORD: spadam
+    networks:
+      - webproxy
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    # environment:
+      # ME_CONFIG_MONGODB_ADMINUSERNAME: spadam
+      # ME_CONFIG_MONGODB_ADMINPASSWORD: spadam
+    depends_on: 
+      - mongo
+    networks:
+      - webproxy
+  app:
+    # image: dveijck/maven:3.3-jdk-8
+    image: maven
+    restart: always
+    ports:
+      - "8080:8080"
+      - "8000:8000"
+    env_file:
+      - ./.env
+    user: ${CURRENT_UID}
+    volumes:
+      # Monta il progetto dentro il container per la build Maven
+      - ./:/usr/src/app
+      # Monta il filesystem dell'utente con il repo M2 nel container docker (cache condivisa)
+      - ~/.m2:/root/.m2
+    working_dir: /usr/src/app
+    depends_on: 
+      - mongo
+      - mongo-express
+    entrypoint: ${MAVEN_PARAMS}
+    networks: 
+      - webproxy
+  portainer:
+    image: portainer/portainer
+    restart: always
+    ports:  
+      - 9000:9000
+    networks: 
+      - webproxy
+    depends_on: 
+      - mongo
+      - mongo-express
+      - app
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+networks:
+  webproxy:
+    driver: bridge
