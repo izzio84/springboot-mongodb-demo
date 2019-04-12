@@ -31,14 +31,19 @@ services:
     ports:
       - "8080:8080"
       - "8000:8000"
-    env_file:
-      - ./.env
-    user: ${CURRENT_UID}
+      
+    environment: 
+      - MAVEN_CONFIG=/var/maven/.m2
+    user: ${CURRENT_UID:-root}
     volumes:
       # Monta il progetto dentro il container per la build Maven
       - ./:/usr/src/app
       # Monta il filesystem dell'utente con il repo M2 nel container docker (cache condivisa)
-      - ~/.m2:/root/.m2
+      - ~/.m2:/var/maven/.m2
+
+
+      # $ docker run -v ~/.m2:/var/maven/.m2 -ti --rm -u 1000 -e MAVEN_CONFIG=/var/maven/.m2 maven mvn -Duser.home=/var/maven archetype:generate
+
     working_dir: /usr/src/app
     depends_on: 
       - mongo
@@ -57,6 +62,9 @@ services:
       - mongo
       - mongo-express
       - app
+    command: --admin-password '$$2y$$05$$K156u3Xh2KM39kZnUSFycuJ/fvUwtou81hT14bOfqg3TM5OIPdU6C'
+
+      
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 networks:
